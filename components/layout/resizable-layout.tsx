@@ -10,11 +10,12 @@ interface PanelHeaderProps {
   onMinimize?: () => void
   onMaximize?: () => void
   onClose?: () => void
+  children?: React.ReactNode
 }
 
-export function PanelHeader({ title, onMinimize, onMaximize, onClose }: PanelHeaderProps) {
+export function PanelHeader({ title, onMinimize, onMaximize, onClose, children }: PanelHeaderProps) {
   return (
-    <div className="flex items-center justify-between p-2 bg-muted/50">
+    <div className="relative flex items-center justify-between p-2 bg-muted/50">
       <h3 className="text-sm font-medium">{title}</h3>
       <div className="flex items-center gap-1">
         {onMinimize && (
@@ -33,6 +34,7 @@ export function PanelHeader({ title, onMinimize, onMaximize, onClose }: PanelHea
           </Button>
         )}
       </div>
+      {children}
     </div>
   )
 }
@@ -52,4 +54,3 @@ export function VerticalResizeHandle({ className = "" }: { className?: string })
     </PanelResizeHandle>
   )
 }
-
