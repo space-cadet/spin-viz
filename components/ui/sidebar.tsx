@@ -18,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { ResizablePanelContainer } from "@/components/ui/resizable-panel"
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -413,19 +414,81 @@ const SidebarContent = React.forwardRef<
 })
 SidebarContent.displayName = "SidebarContent"
 
-const SidebarGroup = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div">
->(({ className, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      data-sidebar="group"
-      className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
-      {...props}
-    />
-  )
-})
+interface SidebarGroupProps extends React.ComponentProps<"div"> {
+  resizable?: boolean;
+  defaultPanelSizes?: number[];
+  minPanelSizes?: number[];
+  onPanelLayout?: (sizes: number[]) => void;
+}
+
+interface SidebarPanelProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+const SidebarPanel = React.forwardRef<HTMLDivElement, SidebarPanelProps>(
+  ({ children, className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        data-sidebar="panel"
+        className={cn("w-full min-h-0", className)}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+SidebarPanel.displayName = "SidebarPanel";
+
+const SidebarGroup = React.forwardRef<HTMLDivElement, SidebarGroupProps>(
+  ({ 
+    className, 
+    children,
+    resizable = false,
+    defaultPanelSizes,
+    minPanelSizes,
+    onPanelLayout,
+    ...props 
+  }, ref) => {
+    if (!resizable) {
+      return (
+        <div
+          ref={ref}
+          data-sidebar="group"
+          className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
+          {...props}
+        >
+          {children}
+        </div>
+      );
+    }
+
+    // Filter out only SidebarPanel children
+    const panels = React.Children.toArray(children).filter(
+      child => React.isValidElement(child) && child.type === SidebarPanel
+    );
+
+    return (
+      <div
+        ref={ref}
+        data-sidebar="group"
+        className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
+        {...props}
+      >
+        <ResizablePanelContainer
+          direction="vertical"
+          defaultSizes={defaultPanelSizes}
+          minSizes={minPanelSizes}
+          onLayout={onPanelLayout}
+        >
+          {panels}
+        </ResizablePanelContainer>
+      </div>
+    );
+  }
+);
 SidebarGroup.displayName = "SidebarGroup"
 
 const SidebarGroupLabel = React.forwardRef<
@@ -755,6 +818,7 @@ export {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  SidebarPanel,
   SidebarProvider,
   SidebarRail,
   SidebarSeparator,
